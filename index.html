@@ -1402,10 +1402,10 @@ function showBlessingPopup(uid){
 const DUEL_WIN_BONUS=0.90;   // thắng đối đầu: +90% giá trị đối kháng
 const DUEL_LOSS_PENALTY=1.00; // thua đối đầu: -100% giá trị đối kháng (thêm vào, ngoài điểm phạt thường)
 const DUEL_PUSH_PENALTY_PCT=0.10; // cả 2 đoán sai (hòa kèo): mỗi người bị trừ thêm 10% giá trị đối kháng
-const DUEL_STAKE_LEVELS=[25,50,100,150]; // % giá trị đối kháng được phép chọn
+const DUEL_STAKE_LEVELS=[50,100,150,200]; // % giá trị đối kháng được phép chọn
 const DUEL_STAKE_DEFAULT=100;
 // Tính giá trị đối kháng quy đổi (đã nhân theo % stake, làm tròn lên) và các mốc thắng/thua/hòa kèo tương ứng
-// absPen: điểm phạt gốc của trận (số dương) | stake: % mức cược (25/50/100/150)
+// absPen: điểm phạt gốc của trận (số dương) | stake: % mức cược (50/100/150/200)
 function duelStakeAmounts(absPen,stake){
   const pct=(stake||DUEL_STAKE_DEFAULT)/100;
   const base=Math.ceil(absPen*pct);
