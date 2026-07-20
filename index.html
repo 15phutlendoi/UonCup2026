@@ -144,16 +144,19 @@
 
   /* full standings list 4-10 */
   .standings{margin-top:20px; border:1px solid var(--line-strong); border-radius:var(--radius); overflow:hidden;}
-  .srow{
-    display:grid; grid-template-columns:52px 1fr auto; gap:14px; align-items:center;
-    padding:14px 20px; border-bottom:1px solid var(--line);
-  }
+  .srow{padding:0 20px; border-bottom:1px solid var(--line);}
   .srow:last-child{border-bottom:none;}
+  .srow-top{
+    display:grid; grid-template-columns:52px 1fr auto 22px; gap:14px; align-items:center; padding:14px 0;
+  }
   .srow .rk{font-family:var(--mono); font-weight:800; color:var(--cream-dim); font-size:20px;}
   .srow .who b{font-family:var(--disp); font-weight:400; text-transform:uppercase; font-size:17px; letter-spacing:.01em;}
   .srow .who span{display:block; font-size:12.5px; color:var(--cream-dim);}
   .srow .pt{font-family:var(--mono); font-weight:700; color:var(--coral); font-size:17px; text-align:right;}
   .srow .pt small{display:block; font-family:var(--body); color:var(--cream-dim); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; font-weight:500;}
+  .srow .chev-mini{font-size:13px; color:var(--sky); transition:transform .4s cubic-bezier(.22,.8,.25,1); justify-self:end;}
+  .srow.open .chev-mini{transform:rotate(180deg);}
+  .srow-panel .p-stats{border-top:none; margin-top:0; padding:0 0 16px; flex-wrap:wrap; justify-content:flex-start; gap:22px;}
 
   /* ================= AWARDS ================= */
   .awards{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
@@ -181,8 +184,14 @@
   @media (max-width:480px){.numgrid{grid-template-columns:1fr;}}
   .num-card{
     border:1px solid var(--line-strong); border-radius:14px; padding:22px 20px;
-    background:rgba(244,239,222,.03);
+    background:rgba(244,239,222,.03); position:relative;
   }
+  .num-card.reveal::after{
+    content:'+'; position:absolute; top:16px; right:16px; width:22px; height:22px; border-radius:50%;
+    border:1px solid var(--line-strong); display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:14px; color:var(--sky); transition:transform .4s cubic-bezier(.22,.8,.25,1);
+  }
+  .num-card.reveal.open::after{transform:rotate(135deg);}
   .num-card .big{font-family:var(--mono); font-weight:800; font-size:clamp(28px,3.6vw,38px); color:var(--gold-light); line-height:1;}
   .num-card .lbl{margin-top:8px; font-size:13.5px; color:var(--cream); font-weight:600;}
   .num-card .dsc{margin-top:4px; font-size:12.5px; color:var(--cream-dim); line-height:1.45;}
@@ -218,11 +227,40 @@
   }
   .chip.pts{color:var(--coral); border-color:rgba(255,107,82,.35);}
   .chip.gold{color:var(--gold); border-color:rgba(227,178,60,.35);}
+  .chips-preview{margin-bottom:2px;}
+  .ticket .body .chips{margin-top:2px;}
 
   /* footer */
   footer{padding:56px 0 80px; text-align:center; border-top:1px solid var(--line);}
   footer .brand{font-family:var(--disp); text-transform:uppercase; font-size:22px; color:var(--gold);}
   footer p{color:var(--cream-dim); font-size:13.5px; margin-top:8px;}
+
+  /* ================= REVEAL / CLICK-TO-OPEN ================= */
+  .reveal{cursor:pointer; transition:border-color .25s ease, transform .25s ease, background .25s ease;}
+  .reveal:hover{border-color:var(--line-strong); transform:translateY(-2px);}
+  .reveal:focus-visible{outline:2px solid var(--gold); outline-offset:3px;}
+  .reveal-hint{
+    display:inline-flex; align-items:center; gap:7px; margin-top:14px;
+    font-family:var(--mono); font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--sky);
+  }
+  .reveal-hint .chev{display:inline-block; transition:transform .4s cubic-bezier(.22,.8,.25,1); font-size:13px;}
+  .reveal.open .reveal-hint .chev{transform:rotate(180deg);}
+  .reveal-hint .open-txt{display:none;}
+  .reveal.open .reveal-hint .open-txt{display:inline;}
+  .reveal.open .reveal-hint .closed-txt{display:none;}
+  .reveal-panel{display:grid; grid-template-rows:0fr; transition:grid-template-rows .5s cubic-bezier(.22,.8,.25,1);}
+  .reveal.open .reveal-panel{grid-template-rows:1fr;}
+  .reveal-panel .rp-inner{overflow:hidden; opacity:0; transform:translateY(-4px); transition:opacity .3s ease, transform .3s ease;}
+  .reveal.open .reveal-panel .rp-inner{opacity:1; transform:translateY(0); transition:opacity .4s ease .12s, transform .4s ease .12s;}
+  .reveal.open{background:rgba(244,239,222,.045);}
+  .reveal.open.gold, .p-card.gold.reveal.open{border-color:rgba(227,178,60,.7);}
+  .sec-actions{display:flex; justify-content:flex-end; margin:-14px 0 18px;}
+  .toggle-all{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--sky);
+    background:transparent; border:1px solid var(--line-strong); border-radius:999px; padding:8px 16px; cursor:pointer;
+  }
+  .toggle-all:hover{border-color:var(--sky);}
+  @media (prefers-reduced-motion: reduce){ .reveal-panel, .reveal-panel .rp-inner, .reveal-hint .chev{transition:none !important;} }
 </style>
 </head>
 <body>
@@ -253,82 +291,99 @@
     <p class="section-sub">Đúng tinh thần của mùa giải: không ai lãi, chỉ có người lỗ ít và người lỗ... rất nhiều. Điểm số là tổng tích lũy sau toàn bộ 104 trận, đã trừ hết chi phí Sao, Khiên và mọi trò KBMT.</p>
 
     <div class="podium">
-      <div class="p-card gold">
+      <div class="p-card gold reveal">
         <div class="medal">🏆</div>
         <div class="p-rank">Hạng 1 · Vô địch</div>
         <div class="p-nick">TAxBE</div>
         <div class="p-name">Tuấn Anh</div>
         <div class="p-pts">-438<small>điểm</small></div>
-        <div class="p-stats">
-          <div><b>47/103</b>đúng</div>
-          <div><b>31</b>lượt Sao</div>
-          <div><b>58</b>lượt KBMT</div>
-        </div>
-        <div class="p-note">Không ồn ào, không phông bạt — cứ thế âm ít nhất giải.</div>
+        <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem thống kê</span><span class="open-txt">Ẩn bớt</span></div>
+        <div class="reveal-panel"><div class="rp-inner">
+          <div class="p-stats">
+            <div><b>47/103</b>đúng</div>
+            <div><b>31</b>lượt Sao</div>
+            <div><b>58</b>lượt KBMT</div>
+          </div>
+          <div class="p-note">Không ồn ào, không phông bạt — cứ thế âm ít nhất giải.</div>
+        </div></div>
       </div>
-      <div class="p-card silver">
+      <div class="p-card silver reveal">
         <div class="medal">🥈</div>
         <div class="p-rank">Hạng 2</div>
         <div class="p-nick">Nhà tiên tri</div>
         <div class="p-name">Hưng béo</div>
         <div class="p-pts">-959<small>điểm</small></div>
-        <div class="p-stats">
-          <div><b>39/104</b>đúng</div>
-          <div><b>28</b>lượt Sao</div>
-          <div><b>47</b>lượt KBMT</div>
-        </div>
-        <div class="p-note">Tự phong "tiên tri" mà đoán đúng chưa tới 4/10 trận — nhưng vẫn về nhì, đúng là biết nhìn xa trông... điểm.</div>
+        <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem thống kê</span><span class="open-txt">Ẩn bớt</span></div>
+        <div class="reveal-panel"><div class="rp-inner">
+          <div class="p-stats">
+            <div><b>39/104</b>đúng</div>
+            <div><b>28</b>lượt Sao</div>
+            <div><b>47</b>lượt KBMT</div>
+          </div>
+          <div class="p-note">Tự phong "tiên tri" mà đoán đúng chưa tới 4/10 trận — nhưng vẫn về nhì, đúng là biết nhìn xa trông... điểm.</div>
+        </div></div>
       </div>
-      <div class="p-card bronze">
+      <div class="p-card bronze reveal">
         <div class="medal">🥉</div>
         <div class="p-rank">Hạng 3</div>
         <div class="p-nick">Đại gia ít tiền</div>
         <div class="p-name">Toàn ăn xin</div>
         <div class="p-pts">-1.085<small>điểm</small></div>
-        <div class="p-stats">
-          <div><b>42/104</b>đúng</div>
-          <div><b>35</b>lượt Sao</div>
-          <div><b>0</b>lượt KBMT</div>
-        </div>
-        <div class="p-note">Người duy nhất giải đấu chưa từng đụng vào một hộp KBMT nào — chơi 100% bằng thực lực, danh xưng "đại gia" hiếm hoi là thật.</div>
+        <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem thống kê</span><span class="open-txt">Ẩn bớt</span></div>
+        <div class="reveal-panel"><div class="rp-inner">
+          <div class="p-stats">
+            <div><b>42/104</b>đúng</div>
+            <div><b>35</b>lượt Sao</div>
+            <div><b>0</b>lượt KBMT</div>
+          </div>
+          <div class="p-note">Người duy nhất giải đấu chưa từng đụng vào một hộp KBMT nào — chơi 100% bằng thực lực, danh xưng "đại gia" hiếm hoi là thật.</div>
+        </div></div>
       </div>
     </div>
 
-    <div class="standings">
-      <div class="srow">
-        <div class="rk">04</div>
-        <div class="who"><b>OLISE</b><span>Nguyễn Trần Hoàn</span></div>
-        <div class="pt">-1.428<small>điểm</small></div>
+    <div class="sec-actions"><button class="toggle-all" data-target="#standings-list">Mở tất cả hạng 4-10</button></div>
+    <div class="standings" id="standings-list">
+      <div class="srow reveal">
+        <div class="srow-top"><div class="rk">04</div><div class="who"><b>OLISE</b><span>Nguyễn Trần Hoàn</span></div><div class="pt">-1.428<small>điểm</small></div><span class="chev-mini">▾</span></div>
+        <div class="reveal-panel srow-panel"><div class="rp-inner">
+          <div class="p-stats"><div><b>36/98</b>đúng</div><div><b>23</b>lượt Sao</div><div><b>9</b>lượt KBMT</div><div><b>17</b>trận 1v1</div></div>
+        </div></div>
       </div>
-      <div class="srow">
-        <div class="rk">05</div>
-        <div class="who"><b>Vuilachinhanlachuyeu</b><span>Hoàng Thành PTSPBL</span></div>
-        <div class="pt">-1.571<small>điểm</small></div>
+      <div class="srow reveal">
+        <div class="srow-top"><div class="rk">05</div><div class="who"><b>Vuilachinhanlachuyeu</b><span>Hoàng Thành PTSPBL</span></div><div class="pt">-1.571<small>điểm</small></div><span class="chev-mini">▾</span></div>
+        <div class="reveal-panel srow-panel"><div class="rp-inner">
+          <div class="p-stats"><div><b>38/104</b>đúng</div><div><b>43</b>lượt Sao</div><div><b>56</b>lượt KBMT</div><div><b>11</b>trận 1v1</div></div>
+        </div></div>
       </div>
-      <div class="srow">
-        <div class="rk">06</div>
-        <div class="who"><b>GOAT</b><span>Fizz</span></div>
-        <div class="pt">-1.578<small>điểm</small></div>
+      <div class="srow reveal">
+        <div class="srow-top"><div class="rk">06</div><div class="who"><b>GOAT</b><span>Fizz</span></div><div class="pt">-1.578<small>điểm</small></div><span class="chev-mini">▾</span></div>
+        <div class="reveal-panel srow-panel"><div class="rp-inner">
+          <div class="p-stats"><div><b>47/104</b>đúng</div><div><b>31</b>lượt Sao</div><div><b>76</b>lượt KBMT</div><div><b>21</b>trận 1v1</div></div>
+        </div></div>
       </div>
-      <div class="srow">
-        <div class="rk">07</div>
-        <div class="who"><b>Underdog</b><span>Quytnv</span></div>
-        <div class="pt">-1.974<small>điểm</small></div>
+      <div class="srow reveal">
+        <div class="srow-top"><div class="rk">07</div><div class="who"><b>Underdog</b><span>Quytnv</span></div><div class="pt">-1.974<small>điểm</small></div><span class="chev-mini">▾</span></div>
+        <div class="reveal-panel srow-panel"><div class="rp-inner">
+          <div class="p-stats"><div><b>33/103</b>đúng</div><div><b>19</b>lượt Sao</div><div><b>72</b>lượt KBMT</div><div><b>24</b>trận 1v1</div></div>
+        </div></div>
       </div>
-      <div class="srow">
-        <div class="rk">08</div>
-        <div class="who"><b>Sống nay Stress mai!</b><span>phanvt</span></div>
-        <div class="pt">-2.002<small>điểm</small></div>
+      <div class="srow reveal">
+        <div class="srow-top"><div class="rk">08</div><div class="who"><b>Sống nay Stress mai!</b><span>phanvt</span></div><div class="pt">-2.002<small>điểm</small></div><span class="chev-mini">▾</span></div>
+        <div class="reveal-panel srow-panel"><div class="rp-inner">
+          <div class="p-stats"><div><b>35/104</b>đúng</div><div><b>43</b>lượt Sao</div><div><b>84</b>lượt KBMT</div><div><b>39</b>trận 1v1</div></div>
+        </div></div>
       </div>
-      <div class="srow">
-        <div class="rk">09</div>
-        <div class="who"><b>Manu vô địch</b><span>Lê Văn Mía</span></div>
-        <div class="pt">-2.080<small>điểm</small></div>
+      <div class="srow reveal">
+        <div class="srow-top"><div class="rk">09</div><div class="who"><b>Manu vô địch</b><span>Lê Văn Mía</span></div><div class="pt">-2.080<small>điểm</small></div><span class="chev-mini">▾</span></div>
+        <div class="reveal-panel srow-panel"><div class="rp-inner">
+          <div class="p-stats"><div><b>40/103</b>đúng</div><div><b>27</b>lượt Sao</div><div><b>28</b>lượt KBMT</div><div><b>20</b>trận 1v1</div></div>
+        </div></div>
       </div>
-      <div class="srow">
-        <div class="rk">10</div>
-        <div class="who"><b>Chúa tể biết trước</b><span>Nguyễn Đức Cường</span></div>
-        <div class="pt">-2.148<small>điểm</small></div>
+      <div class="srow reveal">
+        <div class="srow-top"><div class="rk">10</div><div class="who"><b>Chúa tể biết trước</b><span>Nguyễn Đức Cường</span></div><div class="pt">-2.148<small>điểm</small></div><span class="chev-mini">▾</span></div>
+        <div class="reveal-panel srow-panel"><div class="rp-inner">
+          <div class="p-stats"><div><b>38/104</b>đúng</div><div><b>25</b>lượt Sao</div><div><b>57</b>lượt KBMT</div><div><b>35</b>trận 1v1</div></div>
+        </div></div>
       </div>
     </div>
   </div>
@@ -341,29 +396,35 @@
     <p class="section-sub">Hai danh hiệu này tôn vinh kỹ năng thuần túy, tách biệt hoàn toàn khỏi bảng xếp hạng chung — top 3 xin nhường sân, phần thưởng tự động rơi xuống người xứng đáng tiếp theo.</p>
 
     <div class="awards">
-      <div class="award">
+      <div class="award reveal">
         <div class="badge">Không thuộc Top 3</div>
         <div class="ico">⭐</div>
         <h3>Ngôi Sao Chuẩn Xác</h3>
         <div class="who">Vuilachinhanlachuyeu — Hoàng Thành PTSPBL</div>
-        <p>Người "cày Sao" điên cuồng nhất giải: mua Sao tận 43 lần và trúng tới 17 lần — nhiều hơn bất kỳ ai ngoài Top 3. Tiếc là chi phí mua Sao cũng ngốn không ít điểm, nên vô địch chuyên môn xong vẫn phải nhìn người khác lên bục.</p>
-        <div class="metric">
-          <div><b>43</b><span>Lượt mua Sao</span></div>
-          <div><b>17</b><span>Lượt Sao trúng</span></div>
-          <div><b>39,5%</b><span>Tỷ lệ ăn Sao</span></div>
-        </div>
+        <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem vì sao</span><span class="open-txt">Ẩn bớt</span></div>
+        <div class="reveal-panel"><div class="rp-inner">
+          <p>Người "cày Sao" điên cuồng nhất giải: mua Sao tận 43 lần và trúng tới 17 lần — nhiều hơn bất kỳ ai ngoài Top 3. Tiếc là chi phí mua Sao cũng ngốn không ít điểm, nên vô địch chuyên môn xong vẫn phải nhìn người khác lên bục.</p>
+          <div class="metric">
+            <div><b>43</b><span>Lượt mua Sao</span></div>
+            <div><b>17</b><span>Lượt Sao trúng</span></div>
+            <div><b>39,5%</b><span>Tỷ lệ ăn Sao</span></div>
+          </div>
+        </div></div>
       </div>
-      <div class="award">
+      <div class="award reveal">
         <div class="badge">Không thuộc Top 3</div>
         <div class="ico">🎯</div>
         <h3>Thần Dự Đoán</h3>
         <div class="who">GOAT — Fizz</div>
-        <p>Đoán đúng 47/104 trận — con số cao nhất toàn giải, ngang bằng cả nhà vô địch Tuấn Anh. Vấn đề là 76 lần quay KBMT đã "tặng" lại không ít điểm, trong đó dính "Cù Lừa" tới 20 lần. Đúng chất: mắt tinh, tay đen.</p>
-        <div class="metric">
-          <div><b>47</b><span>Trận đoán đúng</span></div>
-          <div><b>45,2%</b><span>Tỷ lệ chính xác</span></div>
-          <div><b>20×</b><span>Dính "Cù Lừa"</span></div>
-        </div>
+        <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem vì sao</span><span class="open-txt">Ẩn bớt</span></div>
+        <div class="reveal-panel"><div class="rp-inner">
+          <p>Đoán đúng 47/104 trận — con số cao nhất toàn giải, ngang bằng cả nhà vô địch Tuấn Anh. Vấn đề là 76 lần quay KBMT đã "tặng" lại không ít điểm, trong đó dính "Cù Lừa" tới 20 lần. Đúng chất: mắt tinh, tay đen.</p>
+          <div class="metric">
+            <div><b>47</b><span>Trận đoán đúng</span></div>
+            <div><b>45,2%</b><span>Tỷ lệ chính xác</span></div>
+            <div><b>20×</b><span>Dính "Cù Lừa"</span></div>
+          </div>
+        </div></div>
       </div>
     </div>
   </div>
@@ -376,40 +437,40 @@
     <p class="section-sub">104 trận, hàng trăm lượt mua Sao, mở KBMT, khiêu chiến 1v1 — dưới đây là những con số đáng nhớ nhất.</p>
 
     <div class="numgrid">
-      <div class="num-card">
+      <div class="num-card reveal">
         <div class="big">487</div>
         <div class="lbl">Lượt mở KBMT</div>
-        <div class="dsc">Tính trên toàn bộ 10 người chơi, trung bình gần 49 lượt mỗi người.</div>
+        <div class="reveal-panel"><div class="rp-inner"><div class="dsc">Tính trên toàn bộ 10 người chơi, trung bình gần 49 lượt mỗi người.</div></div></div>
       </div>
-      <div class="num-card">
+      <div class="num-card reveal">
         <div class="big">36,6%</div>
         <div class="lbl">Tỷ lệ trúng "Kim Bài Đổ..."</div>
-        <div class="dsc">178/487 lượt quay ra kết quả này — vật phẩm phổ biến nhất và cũng ám ảnh nhất mùa giải.</div>
+        <div class="reveal-panel"><div class="rp-inner"><div class="dsc">178/487 lượt quay ra kết quả này — vật phẩm phổ biến nhất và cũng ám ảnh nhất mùa giải.</div></div></div>
       </div>
-      <div class="num-card">
+      <div class="num-card reveal">
         <div class="big">225</div>
         <div class="lbl">Lời thách đấu 1v1</div>
-        <div class="dsc">113 được chấp nhận, 62 bị từ chối thẳng thừng, 50 bị hủy giữa chừng vì... đổi ý.</div>
+        <div class="reveal-panel"><div class="rp-inner"><div class="dsc">113 được chấp nhận, 62 bị từ chối thẳng thừng, 50 bị hủy giữa chừng vì... đổi ý.</div></div></div>
       </div>
-      <div class="num-card">
+      <div class="num-card reveal">
         <div class="big">84</div>
         <div class="lbl">Lượt KBMT của phanvt</div>
-        <div class="dsc">Kỷ lục nghiện gacha của giải — nhiều hơn người ít nhất (9 lượt) gần 10 lần.</div>
+        <div class="reveal-panel"><div class="rp-inner"><div class="dsc">Kỷ lục nghiện gacha của giải — nhiều hơn người ít nhất (9 lượt) gần 10 lần.</div></div></div>
       </div>
-      <div class="num-card">
+      <div class="num-card reveal">
         <div class="big">1.710</div>
         <div class="lbl">Điểm cách biệt Nhất – Chót</div>
-        <div class="dsc">Từ -438 (Tuấn Anh) đến -2.148 (Nguyễn Đức Cường) — khoảng cách một trời một vực dù cùng chung một giải.</div>
+        <div class="reveal-panel"><div class="rp-inner"><div class="dsc">Từ -438 (Tuấn Anh) đến -2.148 (Nguyễn Đức Cường) — khoảng cách một trời một vực dù cùng chung một giải.</div></div></div>
       </div>
-      <div class="num-card">
+      <div class="num-card reveal">
         <div class="big">-1.526</div>
         <div class="lbl">Điểm trung bình mỗi người</div>
-        <div class="dsc">Không một ai kết thúc mùa giải với điểm dương — "cả làng cùng lỗ" là tựa đề chính xác nhất cho UonCup2026.</div>
+        <div class="reveal-panel"><div class="rp-inner"><div class="dsc">Không một ai kết thúc mùa giải với điểm dương — "cả làng cùng lỗ" là tựa đề chính xác nhất cho UonCup2026.</div></div></div>
       </div>
-      <div class="num-card wide">
+      <div class="num-card wide reveal">
         <div class="big">39 vs 9</div>
         <div class="lbl">Chiến binh khiêu chiến nhất vs điềm tĩnh nhất</div>
-        <div class="dsc">phanvt chấp nhận 39 trận đấu 1v1 — năng nổ nhất giải. Ngược lại, OLISE (Nguyễn Trần Hoàn) chỉ mở KBMT vỏn vẹn 9 lần, phong cách tối giản, né rủi ro triệt để.</div>
+        <div class="reveal-panel"><div class="rp-inner"><div class="dsc">phanvt chấp nhận 39 trận đấu 1v1 — năng nổ nhất giải. Ngược lại, OLISE (Nguyễn Trần Hoàn) chỉ mở KBMT vỏn vẹn 9 lần, phong cách tối giản, né rủi ro triệt để.</div></div></div>
       </div>
     </div>
   </div>
@@ -419,106 +480,147 @@
   <div class="wrap">
     <div class="eyebrow">Chân dung mùa giải</div>
     <h2 class="section-title">Mười tấm vé, mười câu chuyện</h2>
-    <p class="section-sub">Từ nhà vô địch lặng lẽ đến người tự xưng "biết trước" mà về chót — mỗi người một màu sắc, một hành trình.</p>
+    <p class="section-sub">Từ nhà vô địch lặng lẽ đến người tự xưng "biết trước" mà về chót — mỗi người một màu sắc, một hành trình. Chạm vào từng tấm vé để đọc nhận xét riêng.</p>
 
-    <div class="tickets">
-      <div class="ticket">
+    <div class="sec-actions"><button class="toggle-all" data-target="#tickets-grid">Mở tất cả 10 tấm vé</button></div>
+    <div class="tickets" id="tickets-grid">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">01</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">TAxBE</div>
           <div class="real">Tuấn Anh</div>
-          <div class="note">Vô địch mà không cần gồng: ít lệ thuộc KBMT nhất trong Top 3 (58 lượt), tỷ lệ đúng cao nhất giải (47/103) và biết dừng đúng lúc. Vô địch kiểu "chill" nhất lịch sử UonCup.</div>
-          <div class="chips"><span class="chip pts">-438đ</span><span class="chip gold">47 đúng</span><span class="chip">31 Sao</span></div>
+          <div class="chips-preview"><span class="chip pts">-438đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Vô địch mà không cần gồng: ít lệ thuộc KBMT nhất trong Top 3 (58 lượt), tỷ lệ đúng cao nhất giải (47/103) và biết dừng đúng lúc. Vô địch kiểu "chill" nhất lịch sử UonCup.</div>
+                      <div class="chips"><span class="chip pts">-438đ</span><span class="chip gold">47 đúng</span><span class="chip">31 Sao</span></div>
+          </div></div>
         </div>
       </div>
 
-      <div class="ticket">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">02</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">Nhà tiên tri</div>
           <div class="real">Hưng béo</div>
-          <div class="note">Đoán đúng chưa đến 4/10 trận nhưng vẫn ung dung hạng nhì nhờ ít rủi ro hơn phần còn lại. Danh xưng "tiên tri" hơi quá lời, nhưng kết quả thì không ai cãi được.</div>
-          <div class="chips"><span class="chip pts">-959đ</span><span class="chip">39 đúng</span><span class="chip">47 KBMT</span></div>
+          <div class="chips-preview"><span class="chip pts">-959đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Đoán đúng chưa đến 4/10 trận nhưng vẫn ung dung hạng nhì nhờ ít rủi ro hơn phần còn lại. Danh xưng "tiên tri" hơi quá lời, nhưng kết quả thì không ai cãi được.</div>
+                      <div class="chips"><span class="chip pts">-959đ</span><span class="chip">39 đúng</span><span class="chip">47 KBMT</span></div>
+          </div></div>
         </div>
       </div>
 
-      <div class="ticket">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">03</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">Đại gia ít tiền</div>
           <div class="real">Toàn ăn xin</div>
-          <div class="note">Người duy nhất chưa từng chạm vào KBMT — không cờ bạc, không may rủi, chỉ đoán và chịu trận. "Đại gia ít tiền" hóa ra là danh xưng trung thực nhất giải.</div>
-          <div class="chips"><span class="chip pts">-1.085đ</span><span class="chip">42 đúng</span><span class="chip">0 KBMT</span></div>
+          <div class="chips-preview"><span class="chip pts">-1.085đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Người duy nhất chưa từng chạm vào KBMT — không cờ bạc, không may rủi, chỉ đoán và chịu trận. "Đại gia ít tiền" hóa ra là danh xưng trung thực nhất giải.</div>
+                      <div class="chips"><span class="chip pts">-1.085đ</span><span class="chip">42 đúng</span><span class="chip">0 KBMT</span></div>
+          </div></div>
         </div>
       </div>
 
-      <div class="ticket">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">04</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">OLISE</div>
           <div class="real">Nguyễn Trần Hoàn</div>
-          <div class="note">Chỉ mở KBMT 9 lần trong cả mùa giải — thấp nhất giải đấu, style tối giản đúng nghĩa. Nhưng bỏ lỡ 6 trận không dự đoán nên mất điểm oan, suýt soát có mặt ở Top 3.</div>
-          <div class="chips"><span class="chip pts">-1.428đ</span><span class="chip">36/98 đúng</span><span class="chip">9 KBMT</span></div>
+          <div class="chips-preview"><span class="chip pts">-1.428đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Chỉ mở KBMT 9 lần trong cả mùa giải — thấp nhất giải đấu, style tối giản đúng nghĩa. Nhưng bỏ lỡ 6 trận không dự đoán nên mất điểm oan, suýt soát có mặt ở Top 3.</div>
+                      <div class="chips"><span class="chip pts">-1.428đ</span><span class="chip">36/98 đúng</span><span class="chip">9 KBMT</span></div>
+          </div></div>
         </div>
       </div>
 
-      <div class="ticket">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">05</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">Vuilachinhanlachuyeu</div>
           <div class="real">Hoàng Thành PTSPBL</div>
-          <div class="note">Vô địch không chính thức của môn "đốt Sao" — 43 lượt mua, 17 lượt trúng, nhiều nhất giải. Chuyên môn đỉnh cao nhưng ví tiền (điểm số) thì thủng be bét vì phí mua Sao.</div>
-          <div class="chips gold"><span class="chip pts">-1.571đ</span><span class="chip gold">Danh hiệu Ngôi Sao</span><span class="chip">43 Sao</span></div>
+          <div class="chips-preview"><span class="chip pts">-1.571đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Vô địch không chính thức của môn "đốt Sao" — 43 lượt mua, 17 lượt trúng, nhiều nhất giải. Chuyên môn đỉnh cao nhưng ví tiền (điểm số) thì thủng be bét vì phí mua Sao.</div>
+                      <div class="chips gold"><span class="chip pts">-1.571đ</span><span class="chip gold">Danh hiệu Ngôi Sao</span><span class="chip">43 Sao</span></div>
+          </div></div>
         </div>
       </div>
 
-      <div class="ticket">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">06</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">GOAT</div>
           <div class="real">Fizz</div>
-          <div class="note">Đoán đúng nhiều nhất giải (47/104) — xứng tầm biệt danh. Nhưng 76 lượt quay KBMT, dính "Cù Lừa" 20 lần, đã kéo tuột từ ứng viên vô địch xuống hạng 6. Mắt tinh, tay đen là có thật.</div>
-          <div class="chips"><span class="chip pts">-1.578đ</span><span class="chip gold">Danh hiệu Dự Đoán</span><span class="chip">76 KBMT</span></div>
+          <div class="chips-preview"><span class="chip pts">-1.578đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Đoán đúng nhiều nhất giải (47/104) — xứng tầm biệt danh. Nhưng 76 lượt quay KBMT, dính "Cù Lừa" 20 lần, đã kéo tuột từ ứng viên vô địch xuống hạng 6. Mắt tinh, tay đen là có thật.</div>
+                      <div class="chips"><span class="chip pts">-1.578đ</span><span class="chip gold">Danh hiệu Dự Đoán</span><span class="chip">76 KBMT</span></div>
+          </div></div>
         </div>
       </div>
 
-      <div class="ticket">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">07</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">Underdog</div>
           <div class="real">Quytnv</div>
-          <div class="note">Tỷ lệ đúng chỉ 33/103 — thuộc nhóm thấp của giải — nhưng vẫn hăng hái khiêu chiến 24 trận 1v1. Đúng chất "underdog": không mạnh nhất, nhưng chưa bao giờ ngán chiến.</div>
-          <div class="chips"><span class="chip pts">-1.974đ</span><span class="chip">33 đúng</span><span class="chip">24 trận 1v1</span></div>
+          <div class="chips-preview"><span class="chip pts">-1.974đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Tỷ lệ đúng chỉ 33/103 — thuộc nhóm thấp của giải — nhưng vẫn hăng hái khiêu chiến 24 trận 1v1. Đúng chất "underdog": không mạnh nhất, nhưng chưa bao giờ ngán chiến.</div>
+                      <div class="chips"><span class="chip pts">-1.974đ</span><span class="chip">33 đúng</span><span class="chip">24 trận 1v1</span></div>
+          </div></div>
         </div>
       </div>
 
-      <div class="ticket">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">08</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">Sống nay Stress mai!</div>
           <div class="real">phanvt</div>
-          <div class="note">Cày dữ nhất giải theo mọi mặt trận: 84 lượt KBMT (kỷ lục), 39 trận 1v1 chấp nhận (kỷ lục). Chăm chỉ vô đối nhưng điểm số vẫn cứ âm — đúng nghĩa "sống nay stress mai", biết trước thế mà vẫn... chưa cải thiện được gì!</div>
-          <div class="chips"><span class="chip pts">-2.002đ</span><span class="chip">84 KBMT</span><span class="chip">39 trận 1v1</span></div>
+          <div class="chips-preview"><span class="chip pts">-2.002đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Cày dữ nhất giải theo mọi mặt trận: 84 lượt KBMT (kỷ lục), 39 trận 1v1 chấp nhận (kỷ lục). Chăm chỉ vô đối nhưng điểm số vẫn cứ âm — đúng nghĩa "sống nay stress mai", biết trước thế mà vẫn... chưa cải thiện được gì!</div>
+                      <div class="chips"><span class="chip pts">-2.002đ</span><span class="chip">84 KBMT</span><span class="chip">39 trận 1v1</span></div>
+          </div></div>
         </div>
       </div>
 
-      <div class="ticket">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">09</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">Manu vô địch</div>
           <div class="real">Lê Văn Mía</div>
-          <div class="note">Biệt danh trớ trêu nhất giải — "vô địch" mà đứng áp chót. Tỷ lệ đoán đúng thực ra không tệ (40/103) nhưng KBMT ít may mắn (chỉ 28 lượt, không đủ gỡ) khiến giấc mơ vô địch dừng lại ở... cái tên.</div>
-          <div class="chips"><span class="chip pts">-2.080đ</span><span class="chip">40 đúng</span><span class="chip">28 KBMT</span></div>
+          <div class="chips-preview"><span class="chip pts">-2.080đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Biệt danh trớ trêu nhất giải — "vô địch" mà đứng áp chót. Tỷ lệ đoán đúng thực ra không tệ (40/103) nhưng KBMT ít may mắn (chỉ 28 lượt, không đủ gỡ) khiến giấc mơ vô địch dừng lại ở... cái tên.</div>
+                      <div class="chips"><span class="chip pts">-2.080đ</span><span class="chip">40 đúng</span><span class="chip">28 KBMT</span></div>
+          </div></div>
         </div>
       </div>
 
-      <div class="ticket">
+      <div class="ticket reveal">
         <div class="stub"><div class="rk">10</div><div class="rklabel">Hạng</div></div>
         <div class="body">
           <div class="nick">Chúa tể biết trước</div>
           <div class="real">Nguyễn Đức Cường</div>
-          <div class="note">Cái tên tự tin nhất giải đấu lại là người duy nhất... không thấy trước được vị trí của chính mình. 35 trận 1v1 (nhiều thứ nhì) không đủ cứu vãn, chốt mùa giải ở đáy bảng xếp hạng.</div>
-          <div class="chips"><span class="chip pts">-2.148đ</span><span class="chip">38 đúng</span><span class="chip">35 trận 1v1</span></div>
+          <div class="chips-preview"><span class="chip pts">-2.148đ</span></div>
+          <div class="reveal-hint"><span class="chev">▾</span><span class="closed-txt">Chạm để xem chi tiết</span><span class="open-txt">Ẩn bớt</span></div>
+          <div class="reveal-panel"><div class="rp-inner">
+            <div class="note">Cái tên tự tin nhất giải đấu lại là người duy nhất... không thấy trước được vị trí của chính mình. 35 trận 1v1 (nhiều thứ nhì) không đủ cứu vãn, chốt mùa giải ở đáy bảng xếp hạng.</div>
+                      <div class="chips"><span class="chip pts">-2.148đ</span><span class="chip">38 đúng</span><span class="chip">35 trận 1v1</span></div>
+          </div></div>
         </div>
       </div>
     </div>
@@ -532,5 +634,43 @@
   </div>
 </footer>
 
+<script>
+(function(){
+  var revealEls = document.querySelectorAll('.reveal');
+  revealEls.forEach(function(el){
+    el.setAttribute('role','button');
+    el.setAttribute('tabindex','0');
+    el.setAttribute('aria-expanded','false');
+    function toggle(e){
+      // avoid re-toggling when clicking a link/button inside (none currently, but safe)
+      var open = el.classList.toggle('open');
+      el.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){
+        e.preventDefault();
+        toggle(e);
+      }
+    });
+  });
+
+  document.querySelectorAll('.toggle-all').forEach(function(btn){
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      var target = document.querySelector(btn.getAttribute('data-target'));
+      if(!target) return;
+      var items = target.querySelectorAll('.reveal');
+      var anyClosed = Array.prototype.some.call(items, function(it){ return !it.classList.contains('open'); });
+      items.forEach(function(it){
+        it.classList.toggle('open', anyClosed);
+        it.setAttribute('aria-expanded', anyClosed ? 'true' : 'false');
+      });
+      btn.textContent = anyClosed ? 'Thu gọn tất cả' : btn.dataset.label;
+    });
+    btn.dataset.label = btn.textContent;
+  });
+})();
+</script>
 </body>
 </html>
